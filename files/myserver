@@ -1,0 +1,72 @@
+server {
+  
+
+
+  server_name peanutbutterjelly.zapto.org;
+  root /var/www/myserver/html;
+  index index.html;
+
+  
+  
+
+
+  location / {
+    try_files $uri $uri/ =404;
+  }
+
+  location /logo.png {
+    alias /var/www/myserver/html/assets/logo.png;
+    add_header Content-Disposition 'attachment; filename="logo.png"';
+  }
+
+  location /admin {
+    auth_basic "Área restringida";
+    auth_basic_user_file /etc/nginx/.htpasswd_admin;
+    try_files /admin.html =404; 
+  }
+
+  location /status {
+    proxy_pass http://localhost:19999;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    auth_basic "Área restringida";
+    auth_basic_user_file /etc/nginx/.htpasswd_status;
+
+    location /status/api {
+        proxy_pass http://localhost:19999/api;
+    }
+  }
+
+  error_page 404 /error404.html;
+
+  location /error404.html {
+    root /var/www/myserver/html;
+    internal;
+  }
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/peanutbutterjelly.zapto.org/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/peanutbutterjelly.zapto.org/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}server {
+    if ($host = peanutbutterjelly.zapto.org) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+  listen 80;
+  
+
+
+  server_name peanutbutterjelly.zapto.org;
+    return 404; # managed by Certbot
+
+
+}
